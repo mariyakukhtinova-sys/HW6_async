@@ -1,0 +1,96 @@
+asyncapi: '2.6.0'
+info:
+  title: Face Blur Async Pipeline
+  version: '1.0.0'
+  description: >
+    Asynchronous video frame processing pipeline:
+    cvtColor(frame) -> detectMultiScale(gray) -> apply_mosaic_effect.
+
+servers:
+  rabbitmq:
+    url: amqp://localhost:5672
+    protocol: amqp
+    description: RabbitMQ broker
+
+channels:
+  frame.grayscaled:
+    publish:
+      summary: Event published after grayscale conversion
+      message:
+        name: GrayFrameReady
+        contentType: application/json
+        payload:
+          type: object
+          properties:
+            job_id:
+              type: string
+            frame_id:
+              type: integer
+            frame_path:
+              type: string
+            gray_frame_path:
+              type: string
+          required:
+            - job_id
+            - frame_id
+            - frame_path
+            - gray_frame_path
+
+  faces.detected:
+    publish:
+      summary: Event published after face detection
+      message:
+        name: FacesDetected
+        contentType: application/json
+        payload:
+          type: object
+          properties:
+            job_id:
+              type: string
+            frame_id:
+              type: integer
+            frame_path:
+              type: string
+            faces:
+              type: array
+              items:
+                type: object
+                properties:
+                  x:
+                    type: integer
+                  y:
+                    type: integer
+                  w:
+                    type: integer
+                  h:
+                    type: integer
+                required:
+                  - x
+                  - y
+                  - w
+                  - h
+          required:
+            - job_id
+            - frame_id
+            - frame_path
+            - faces
+
+  frame.blurred:
+    publish:
+      summary: Event published after face blurring
+      message:
+        name: FrameBlurred
+        contentType: application/json
+        payload:
+          type: object
+          properties:
+            job_id:
+              type: string
+            frame_id:
+              type: integer
+            blurred_frame_path:
+              type: string
+          required:
+            - job_id
+            - frame_id
+            - blurred_frame_path
